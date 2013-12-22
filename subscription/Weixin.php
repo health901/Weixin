@@ -7,10 +7,11 @@
  */
 Class Weixin {
 
-    private $_token;
-    private $_data;
-    private $_callback;
-    private $_xml;
+    private $token;
+    private $data;
+    private $callbacks;
+    private $xml;
+    private $responseLock = False;
 
     /**
      * 创建SDK实例
@@ -19,7 +20,7 @@ Class Weixin {
      */
     public function __construct($token = NULL) {
 	if ($token)
-	    $this->_token = $token;
+	    $this->token = $token;
     }
 
     /**
@@ -28,31 +29,35 @@ Class Weixin {
      * @param string $token Token
      */
     public function setToken($token) {
-	$this->_token = $token;
+	$this->token = $token;
     }
 
     /**
-     * 监听用户信息
+     * 监听用户消息
      */
     public function listen() {
 	$check = $this->checkSignature();
 	if (FALSE === $check) {
-	    echo '403';
+//	    echo '401';
 	    return;
 	}
 	if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 	    if ($check !== TRUE) {
 		echo $check;
 	    } else {
-		echo $_SERVER['REQUEST_METHOD'];
-		echo '404';
+//		echo '404';
 	    }
 	} else {
-	    $type = $this->parseData($_POST['body']);
-	    if (isset($this->_callback[$type])) {
-		call_user_func($this->_callback[$type], $this->_data);
-	    } elseif (isset($this->_callback['undefined'])) {
-		call_user_func($this->_callback['undefined'], $this->_data);
+	    $data = file_get_contents("php://input");
+	    if(!$data){
+//		echo '404';
+		return;
+	    }
+	    $type = $this->parseData($data);
+	    if (isset($this->callbacks[$type])) {
+		call_user_func($this->callbacks[$type], $this->data);
+	    } elseif (isset($this->callbacks['undefined'])) {
+		call_user_func($this->callbacks['undefined'], $this->data);
 	    }
 	}
     }
@@ -67,7 +72,7 @@ Class Weixin {
      * @param callback $callback 回调函数
      */
     public function setCallback($type, $callback) {
-	$this->_callback[strtolower($type)] = $callback;
+	$this->callbacks[strtolower($type)] = $callback;
     }
 
     /**
@@ -76,8 +81,8 @@ Class Weixin {
      * @param string $content 消息内容
      */
     public function responseText($content) {
-	$this->_xml .= "<MsgType><![CDATA[text]]></MsgType>";
-	$this->_xml .= "<Content><![CDATA[{$content}]]></Content>";
+	$this->xml .= "<MsgType><![CDATA[text]]></MsgType>";
+	$this->xml .= "<Content><![CDATA[{$content}]]></Content>";
 	$this->response();
     }
 
@@ -87,8 +92,8 @@ Class Weixin {
      * @param string $mediaid 通过上传多媒体文件，得到的id 
      */
     public function responseImage($mediaid) {
-	$this->_xml .= "<MsgType><![CDATA[image]]></MsgType>";
-	$this->_xml .= "<Image><MediaId><![CDATA[{$mediaid}]]></MediaId></Image>";
+	$this->xml .= "<MsgType><![CDATA[image]]></MsgType>";
+	$this->xml .= "<Image><MediaId><![CDATA[{$mediaid}]]></MediaId></Image>";
 	$this->response();
     }
 
@@ -98,8 +103,8 @@ Class Weixin {
      * @param string $mediaid 通过上传多媒体文件，得到的id 
      */
     public function responseVoice($mediaid) {
-	$this->_xml .= "<MsgType><![CDATA[voice]]></MsgType>";
-	$this->_xml .= "<Voice><MediaId><![CDATA[{$mediaid}]]></MediaId></Voice>";
+	$this->xml .= "<MsgType><![CDATA[voice]]></MsgType>";
+	$this->xml .= "<Voice><MediaId><![CDATA[{$mediaid}]]></MediaId></Voice>";
 	$this->response();
     }
 
@@ -111,8 +116,8 @@ Class Weixin {
      * @param string $desc 视频消息的描述
      */
     public function responseVideo($mediaid, $title = '', $desc = '') {
-	$this->_xml .= "<MsgType><![CDATA[video]]></MsgType>";
-	$this->_xml .= "<Video><MediaId><![CDATA[{$mediaid}]]></MediaId>Title><![CDATA[{$title}]]></Title><Description><![CDATA[{$desc}]]></Description></Video>";
+	$this->xml .= "<MsgType><![CDATA[video]]></MsgType>";
+	$this->xml .= "<Video><MediaId><![CDATA[{$mediaid}]]></MediaId>Title><![CDATA[{$title}]]></Title><Description><![CDATA[{$desc}]]></Description></Video>";
 	$this->response();
     }
 
@@ -126,8 +131,8 @@ Class Weixin {
      * @param string $hqurl 高质量音乐链接，WIFI环境优先使用该链接播放音乐
      */
     public function responseMusic($mediaid, $title = '', $desc = '', $url = '', $hqurl = '') {
-	$this->_xml .= "<MsgType><![CDATA[music]]></MsgType>";
-	$this->_xml .= "<Music><Title><![CDATA[{$title}]]></Title><Description><![CDATA[DESCRIPTION{$desc}]]></Description><MusicUrl><![CDATA[{$url}]]></MusicUrl><HQMusicUrl><![CDATA[{$hqurl}]]></HQMusicUrl><ThumbMediaId><![CDATA[{$mediaid}]]></ThumbMediaId></Music>";
+	$this->xml .= "<MsgType><![CDATA[music]]></MsgType>";
+	$this->xml .= "<Music><Title><![CDATA[{$title}]]></Title><Description><![CDATA[DESCRIPTION{$desc}]]></Description><MusicUrl><![CDATA[{$url}]]></MusicUrl><HQMusicUrl><![CDATA[{$hqurl}]]></HQMusicUrl><ThumbMediaId><![CDATA[{$mediaid}]]></ThumbMediaId></Music>";
 	$this->response();
     }
 
@@ -135,21 +140,21 @@ Class Weixin {
      * 回复图文消息
      * 图文消息个数，限制为10条以内
      * 
-     * @param int $count 图文消息个数，限制为10条以内
      * @param array $articles 多个article构成的数组，article格式为array('title'=>'','description'=>'','picurl'=>'','url'=>'')
      */
-    public function responseNews($count, $articles) {
-	$this->_xml .= "<MsgType><![CDATA[news]]></MsgType>";
-	$this->_xml .= "<ArticleCount>{$count}</ArticleCount>";
-	$this->_xml .= "<Articles>";
+    public function responseNews($articles) {
+	$count = sizeof($articles);
+	$this->xml .= "<MsgType><![CDATA[news]]></MsgType>";
+	$this->xml .= "<ArticleCount>{$count}</ArticleCount>";
+	$this->xml .= "<Articles>";
 	foreach ($articles as $article) {
 	    $title = isset($article['title']) ? $article['title'] : '';
 	    $desc = isset($article['description']) ? $article['description'] : '';
 	    $picurl = isset($article['picurl']) ? $article['picurl'] : '';
 	    $url = isset($article['url']) ? $article['url'] : '';
-	    $this->_xml .= "<item><Title><![CDATA[{$title}]]></Title><Description><![CDATA[{$desc}]]></Description><PicUrl><![CDATA[{$picurl}]]></PicUrl><Url><![CDATA[{$url}]]></Url></item>";
+	    $this->xml .= "<item><Title><![CDATA[{$title}]]></Title><Description><![CDATA[{$desc}]]></Description><PicUrl><![CDATA[{$picurl}]]></PicUrl><Url><![CDATA[{$url}]]></Url></item>";
 	}
-	$this->_xml .= "</Articles>";
+	$this->xml .= "</Articles>";
 	$this->response();
     }
 
@@ -161,7 +166,7 @@ Class Weixin {
 	$timestamp = $_GET["timestamp"];
 	$nonce = $_GET["nonce"];
 
-	$tmpArr = array($this->_token, $timestamp, $nonce);
+	$tmpArr = array($this->token, $timestamp, $nonce);
 	sort($tmpArr);
 	$tmpStr = sha1(implode($tmpArr));
 
@@ -181,16 +186,19 @@ Class Weixin {
      * @return string
      */
     private function parseData($data) {
-	$this->_data = simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA);
-	return strval($this->_data->MsgType);
+	$this->data = simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA);
+	return strval($this->data->MsgType);
     }
 
     private function response() {
+	if ($this->responseLock)
+	    return;
+	$this->responseLock = TRUE;
 	$t = time();
-	$xml = "<ToUserName><![CDATA[{$this->_data->FromUserName}]]></ToUserName>";
-	$xml .= "<FromUserName><![CDATA[{$this->_data->ToUserName}]]></FromUserName>";
+	$xml = "<ToUserName><![CDATA[{$this->data->FromUserName}]]></ToUserName>";
+	$xml .= "<FromUserName><![CDATA[{$this->data->ToUserName}]]></FromUserName>";
 	$xml .= "<CreateTime>{$t}</CreateTime>";
-	$xml = "<xml>" . $xml . $this->_xml . "</xml>";
+	$xml = "<xml>" . $xml . $this->xml . "</xml>";
 	echo $xml;
     }
 
