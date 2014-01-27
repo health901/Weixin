@@ -499,7 +499,6 @@ Class Weixin {
 	 */
 	private function send($data) {
 		$url = 'https://api.weixin.qq.com/cgi-bin/message/custom/send';
-		echo $this->unicodeDecode(json_encode($data));
 		return json_decode($this->request($url, $data, 'post'), TRUE);
 	}
 
@@ -597,7 +596,7 @@ Class Weixin {
 				$code = base_convert(substr($unicode, 2, 2), 16, 10);
 				$code2 = base_convert(substr($unicode, 4), 16, 10);
 				$c = chr($code) . chr($code2);
-				$c = iconv('UCS-2', 'UTF-8', $c);
+				$c = iconv('UCS-2BE', 'UTF-8', $c);
 				$string = str_replace($unicode, $c, $string);
 			}
 		}
