@@ -14,8 +14,18 @@ Class Weixin {
 	private $secret;
 	private $accessToken;
 	private $sender;
-	private $cacheDir;
-	private $develop;
+	public $cacheType = 'File';
+	public $cacheDir;
+	public $develop = FALSE;
+
+	CONST TYPE_TEXT = 'text';
+	CONST TYPE_IMAGE = 'image';
+	CONST TYPE_VOICE = 'voice';
+	CONST TYPE_VEDIO = 'video';
+	CONST TYPE_LOCATION = 'location';
+	CONST TYPE_LINK = 'link';
+	CONST TYPE_EVENT = 'event';
+	CONST TYPE_UNDEFINED = 'undefined';
 
 	/**
 	 * 创建SDK实例
@@ -25,40 +35,43 @@ Class Weixin {
 	 * @param type $token Token字符串
 	 * @param type $cacheDir 缓存目录,需要有读写权限，默认为当前目录。该目录外部不可访问。
 	 */
-	public function __construct($appid, $secret, $token, $develop = false, $cacheDir = NULL) {
+	public function __construct($appid, $secret, $token) {
 		$this->token = $token;
 		$this->appid = $appid;
 		$this->secret = $secret;
-		if ($cacheDir) {
-			$this->cacheDir = $cacheDir;
-		}
-		$this->develop = $develop;
 		$this->accessToken = $this->getAccessToken();
 	}
 
+	/**
+	 * 设置缓存目录
+	 * @param type $dir
+	 */
+	public function setCacheDir($dir) {
+		$this->cacheDir = $dir;
+	}
+
+	/**
+	 * 监听用户消息
+	 */
 	public function listen() {
 		$check = $this->checkSignature();
 		if (FALSE === $check) {
-//	    echo '401';
 			return;
 		}
 		if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 			if ($check !== TRUE) {
 				echo $check;
-			} else {
-//		echo '404';
 			}
 		} else {
 			$data = file_get_contents("php://input");
 			if (!$data) {
-//		echo '404';
 				return;
 			}
 			$type = $this->parseData($data);
 			if (isset($this->callbacks[$type])) {
 				call_user_func($this->callbacks[$type], $this->data);
-			} elseif (isset($this->callbacks['undefined'])) {
-				call_user_func($this->callbacks['undefined'], $this->data);
+			} elseif (isset($this->callbacks[self::TYPE_UNDEFINED])) {
+				call_user_func($this->callbacks[self::TYPE_UNDEFINED], $this->data);
 			}
 		}
 	}
@@ -439,33 +452,25 @@ Class Weixin {
 	 * @return string
 	 */
 	private function parseData($data) {
-		$this->data = simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA);
-		$this->sender = strval($this->data->FromUserName);
-		if (strval($this->data->MsgType) == 'event') {
+		$this->data = new WeixinResult($data);
+		$this->sender = $this->data->FromUserName;
+		if ($this->data->MsgType == 'event') {
 			$return = 'event.' . $this->data->Event;
 			if (isset($this->data->EventKey)) {
 				$return .= '.' . $this->data->EventKey;
 			}
 			return $return;
 		} else {
-			return strval($this->data->MsgType);
+			return $this->data->MsgType;
 		}
 	}
 
 	private function getAccessToken() {
 
 		if (!$this->develop) {
-			/**
-			 * @todo 使用数据库等缓存最佳
-			 */
-			$cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
-			if (file_exists($cachefile)) {
-				$_cache = file_get_contents($cachefile);
-				if ($_cache && $cache = unserialize($_cache)) {
-					if ($cache['expire'] > time()) {
-						return $cache['acccessToken'];
-					}
-				}
+			$cache = $this->getCache('acccessToken');
+			if ($cache && $cache['expire'] > time()) {
+				return $cache['acccessToken'];
 			}
 		}
 		$url = 'https://api.weixin.qq.com/cgi-bin/token';
@@ -482,10 +487,7 @@ Class Weixin {
 
 
 			if (!$this->develop) {
-				/**
-				 * @todo 使用数据库
-				 */
-				file_put_contents($cachefile, serialize($accessToken));
+				$this->setCache('acccessToken', $accessToken);
 			}
 
 			return $data['access_token'];
@@ -603,6 +605,37 @@ Class Weixin {
 		return $string;
 	}
 
+	/**
+	 * 缓存
+	 * @todo 使用缓存类来扩展缓存功能
+	 */
+	private function getCache($key) {
+		$cacheHandel = 'get' . $this->cacheType . 'Cache';
+		return $this->$cacheHandel($key);
+	}
+
+	private function setCache($key, $value = NULL) {
+		$cacheHandel = 'set' . $this->cacheType . 'Cache';
+		return $this->$cacheHandel($key, $value);
+	}
+
+	private function getFileCache($key) {
+		$cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
+		if (file_exists($cachefile)) {
+			$_cache = file_get_contents($cachefile);
+			if ($_cache && $cache = unserialize($_cache)) {
+				return $cache[$key];
+			}
+		}
+		return false;
+	}
+
+	private function setFileCache($key, $value = NULL) {
+		$cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
+		$cache = array($key => $value);
+		file_put_contents($cachefile, serialize($cache));
+	}
+
 }
 
 /**
@@ -680,6 +713,26 @@ Class WeixinMenu {
 			}
 		}
 		return array('button' => $buttons);
+	}
+
+}
+
+/**
+ * 
+ * @author Viking Robin <admin@vkrobin.com>
+ */
+class WeixinResult {
+
+	private $xml;
+
+	public function __construct($xml) {
+		$this->xml = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
+	}
+
+	public function __get($name) {
+		if (property_exists($this->xml, $name)) {
+			return strval($this->xml->$name);
+		}
 	}
 
 }
