@@ -1,7 +1,7 @@
 <?php
 //服务号
 require_once('service/Weixin.php');
-$weixin = new Weixin('wx047be627bb7116c3', '392f899f7e6c57c0ffeb588cf01674bc', 'robin', true);
+$weixin = new Weixin('wx047be627bb7116c3', '392f899f7e6c57c0ffeb588cf01674bc', 'robin');
 
 //$weixin->develop = TRUE;	#开发者模式,不会生成缓存.
 
