@@ -78,6 +78,7 @@ Class Weixin {
 	 */
 	public function setCallback($type, $callback) {
 		$this->callbacks[strtolower($type)] = $callback;
+		return $this;
 	}
 
 	/**
