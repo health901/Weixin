@@ -16,5 +16,7 @@ Weixin SDK
 
 
 ##文档
+见demo
+
 ##测试账号
 ![QR](http://mmbiz.qpic.cn/mmbiz/7YOXna1VLtwmgqEf41BuBUmTJHmnAuMotiatfAtvcR4FfvIYuwDkKedefkWicTEdsERmJXuuAHu8qNmdb9HB31mw/0)
