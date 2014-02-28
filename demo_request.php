@@ -18,7 +18,8 @@ $menu->addButton('按钮1', 'click', 'EVENT_CLICK_1');
 $menu->addSubButton(1, '按钮1-1', 'click', 'EVENT_CLICK_1_1');
 $menu->addButton('按钮2', 'click', 'EVENT_CLICK_2');
 $menu->addButton('菜单');
-$menu->addSubButton(2, '谷歌', 'view', 'http://google.com');
+$menu->addSubButton(3, '谷歌', 'view', 'http://google.com');
+print_r($menu->toArray());
 $weixin->createMenu($menu);
 print_r($weixin->getMenu());
 
