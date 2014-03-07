@@ -5,6 +5,9 @@
  * 
  * @author Viking Robin <admin@vkrobin.com>
  */
+require_once('WeixinMenu.php');
+require_once('WeixinResult.php');
+
 Class Weixin {
 
 	private $token;
@@ -19,30 +22,52 @@ Class Weixin {
 	private $responseLock = False;
 
 	/**
-	 *
-	 * @var string $cacheType 缓存类型
+	 * @property string $cacheType 缓存类型 
 	 */
 	public $cacheType = 'File';
 
 	/**
-	 *
-	 * @var string $cacheDir 缓存目录
+	 * @property string $cacheDir 缓存目录 
 	 */
 	public $cacheDir = NULL;
 
 	/**
-	 *
-	 * @var boolean $develop 开发者模式
+	 * @property boolean $develop 开发者模式 
 	 */
 	public $develop = FALSE;
 
+	/**
+	 * @const string 文本消息 
+	 */
+
 	CONST TYPE_TEXT = 'text';
+	/*
+	 * *@const string 图片消息 
+	 */
 	CONST TYPE_IMAGE = 'image';
+	/*
+	 * *@const string 音频消息 
+	 */
 	CONST TYPE_VOICE = 'voice';
+	/**
+	 * @const string 视频消息 
+	 */
 	CONST TYPE_VEDIO = 'video';
+	/**
+	 * @const string 地理位置消息 
+	 */
 	CONST TYPE_LOCATION = 'location';
+	/**
+	 * @const string 链接消息 
+	 */
 	CONST TYPE_LINK = 'link';
+	/**
+	 * @const string 事件推送 
+	 */
 	CONST TYPE_EVENT = 'event';
+	/**
+	 * @const string 所有未被捕获的消息 
+	 */
 	CONST TYPE_UNDEFINED = 'undefined';
 
 	/**
@@ -68,7 +93,7 @@ Class Weixin {
 
 	/**
 	 * 设置缓存目录
-	 * @param type $dir
+	 * @param type $dir 缓存目录
 	 */
 	public function setCacheDir($dir) {
 		$this->cacheDir = $dir;
@@ -104,10 +129,10 @@ Class Weixin {
 	 * 对不同类型的用户消息设置对应的处理过程（回调函数）
 	 * 若设置了$type为undefind的回调函数，则所有未指定回调函数的消息类型将调用此函数
 	 * 接收到的用户消息（SimpleXMLElement）将作为唯一参数传递给回调函数
-	 * http://mp.weixin.qq.com/wiki/index.php?title=%E6%8E%A5%E6%94%B6%E6%99%AE%E9%80%9A%E6%B6%88%E6%81%AF
+	 * @see http://mp.weixin.qq.com/wiki/index.php?title=%E6%8E%A5%E6%94%B6%E6%99%AE%E9%80%9A%E6%B6%88%E6%81%AF
 	 * 
-	 * @param string $type
-	 * @param callback $callback
+	 * @param string $type	消息类型
+	 * @param callback $callback 回调函数
 	 */
 	public function setCallback($type, $callback) {
 		$this->callbacks[strtolower($type)] = $callback;
@@ -348,6 +373,7 @@ Class Weixin {
 	 * 
 	 * @param string $sendTo 普通用户openid
 	 * @param array $articles 多个article构成的数组，article格式为array('title'=>'','description'=>'','picurl'=>'','url'=>'')
+	 * @see http://mp.weixin.qq.com/wiki/index.php?title=%E5%8F%91%E9%80%81%E5%AE%A2%E6%9C%8D%E6%B6%88%E6%81%AF#.E5.8F.91.E9.80.81.E5.9B.BE.E6.96.87.E6.B6.88.E6.81.AF
 	 * @return array
 	 */
 	public function sendNews($sendTo, $articles) {
@@ -720,106 +746,6 @@ Class Weixin {
 		$cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
 		$cache = array($key => $value);
 		file_put_contents($cachefile, serialize($cache));
-	}
-
-}
-
-/**
- * 微信自定义菜单辅助类
- * 
- * @author Viking Robin <admin@vkrobin.com>
- */
-Class WeixinMenu {
-
-	private $buttons = array();
-
-	/**
-	 * 创建一级菜单
-	 * 
-	 * @param string $name 菜单标题，不超过16个字节，子菜单不超过40个字节
-	 * @param string $type 菜单的响应动作类型，目前有click、view两种类型 
-	 * @param string $value  若为click类型,则为key的值，若为view类型，则为url链接
-	 * @return boolean 返回是否创建成功
-	 */
-	public function addButton($name, $type = NULL, $value = NULL) {
-		if (sizeof($this->buttons) == 3) {
-			return FALSE;
-		}
-		if ($type == 'view') {
-			$button['type'] = 'view';
-			$button['url'] = $value;
-		} else {
-			$button['type'] = 'click';
-			$button['key'] = $value;
-		}
-		$button['name'] = $name;
-		$this->buttons[] = $button;
-	}
-
-	/**
-	 * 创建二级菜单
-	 * 
-	 * @param int $index 父按钮序号 1~3 直接
-	 * @param string $name 菜单标题，不超过16个字节，子菜单不超过40个字节
-	 * @param string $type 菜单的响应动作类型，目前有click、view两种类型 
-	 * @param string $value  若为click类型,则为key的值，若为view类型，则为url链接
-	 * @return boolean 返回是否创建成功
-	 */
-	public function addSubButton($index, $name, $type, $value) {
-		$index--;
-		if (!isset($this->buttons[$index])) {
-			return FALSE;
-		}
-		if (sizeof($this->buttons[$index]) == 5) {
-			return FALSE;
-		}
-		if ($type == 'view') {
-			$button['type'] = 'view';
-			$button['url'] = $value;
-		} else {
-			$button['type'] = 'click';
-			$button['key'] = $value;
-		}
-		$button['name'] = $name;
-		$this->buttons[$index]['sub'][] = $button;
-		return TRUE;
-	}
-
-	/**
-	 * 导出数组
-	 * 
-	 * @return array
-	 */
-	public function toArray() {
-		$buttons = array();
-		foreach ($this->buttons as $button) {
-			if (isset($button['sub'])) {
-				$buttons[] = array('name' => $button['name'], 'sub_button' => $button['sub']);
-			} else {
-				$buttons[] = $button;
-			}
-		}
-		return array('button' => $buttons);
-	}
-
-}
-
-/**
- * 
- * @author Viking Robin <admin@vkrobin.com>
- */
-class WeixinResult {
-
-	private $xml;
-
-	public function __construct($xml) {
-		$this->xml = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
-	}
-
-	public function __get($name) {
-		if (property_exists($this->xml, $name)) {
-			return strval($this->xml->$name);
-		}
 	}
 
 }
