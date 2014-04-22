@@ -3,11 +3,11 @@
 //引入库
 require_once('Weixin.php');
 //创建SDK实例
-$weixin = new Weixin(
-        'vrobin', #Token
-        'wx047be627bb7116c3', #AppID
-        '392f899f7e6c57c0ffeb588cf01674bc', #AppSecret
-        true    #是否服务号
+$weixin = Weixin::init(
+                'vrobin', #Token
+                'wx047be627bb7116c3', #AppID
+                '392f899f7e6c57c0ffeb588cf01674bc', #AppSecret
+                true    #是否服务号
 );
 
 /**
