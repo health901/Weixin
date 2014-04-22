@@ -20,3 +20,6 @@ Weixin SDK
 
 ##测试账号
 ![QR](http://mmbiz.qpic.cn/mmbiz/7YOXna1VLtwmgqEf41BuBUmTJHmnAuMotiatfAtvcR4FfvIYuwDkKedefkWicTEdsERmJXuuAHu8qNmdb9HB31mw/0)
+
+##.htaccess文件说明
+`SetEnv WEIXIN_NO_SIGNATURE 1` : 取消该行注释,接收消息时将不验证签名,用于调试.
