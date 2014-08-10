@@ -1,96 +1,104 @@
 <?php
 
 /**
- * 微信公众接口SDK 服务号版
+ * 微信公众接口SDK
  * 
  * @author Viking Robin <admin@vkrobin.com>
  */
 require_once('WeixinMenu.php');
 require_once('WeixinResult.php');
 
-Class Weixin {
+/**
+ * @property string $cacheType 缓存类型
+ * @property string $cacheDir 缓存目录 
+ * @property boolean $develop 开发者模式 
+ */
+Class Weixin
+{
 
-    private $token;
-    private $data;
-    private $callbacks;
-    private $xml;
-    private $appid;
-    private $secret;
-    private $accessToken;
-    private $sender;
-    private $isService = FALSE;
-    private $responseLock = False;
-
+    protected $token;
     /**
-     * @property string $cacheType 缓存类型 
+     *
+     * @var WeixinResult
      */
+    protected $data;
+    protected $callbacks;
+    protected $xml;
+    protected $appid;
+    protected $secret;
+    protected $accessToken;
+    protected $sender;
+    protected $isService = FALSE;
+    protected $responseLock = False;
     public $cacheType = 'File';
-
-    /**
-     * @property string $cacheDir 缓存目录 
-     */
     public $cacheDir = NULL;
-
-    /**
-     * @property boolean $develop 开发者模式 
-     */
     public $develop = FALSE;
 
     /**
-     * @const string 文本消息 
+     * 文本消息
      */
-
     CONST TYPE_TEXT = 'text';
     /*
-     * *@const string 图片消息 
+     * 图片消息 
      */
     CONST TYPE_IMAGE = 'image';
     /*
-     * *@const string 音频消息 
+     * 音频消息 
      */
     CONST TYPE_VOICE = 'voice';
+
     /**
-     * @const string 视频消息 
+     * 视频消息 
      */
     CONST TYPE_VEDIO = 'video';
+
     /**
-     * @const string 地理位置消息 
+     * 地理位置消息 
      */
     CONST TYPE_LOCATION = 'location';
+
     /**
-     * @const string 链接消息 
+     * 链接消息 
      */
     CONST TYPE_LINK = 'link';
+
     /**
-     * @const string 事件推送 
+     * 事件推送 
      */
     CONST TYPE_EVENT = 'event';
+
     /**
-     * @const string 所有未被捕获的消息 
+     * 所有未被捕获的消息 
      */
     CONST TYPE_UNDEFINED = 'undefined';
+
     /**
-     * @const string 订阅事件
+     * 订阅事件
      */
     CONST EVENT_SUBSCRIBE = 'subscribe';
+
     /**
-     * @const string 取消订阅事件
+     * 取消订阅事件
      */
     CONST EVENT_UNSUBSCRIBE = 'unsubscribe';
+
     /**
-     * @const string 取消订阅事件
+     * 取消订阅事件
      */
     CONST EVENT_SCAN = 'scan';
+
     /**
-     * @const string 上报地理位置事件 (自动上报事件,手动上报为location消息,不是event消息)
+     * 上报地理位置事件 (自动上报事件,手动上报为location消息,不是event消息)
      */
     CONST EVENT_LOCATION = 'location';
-    /**
-     * @const string 点击菜单拉取消息时的事件推送
+
+    /*
+     * 点击菜单拉取消息时的事件推送
      */
     CONST EVENT_CLICK = 'click';
+
     /**
-     * @const string  点击菜单跳转链接时的事件推送 
+     * 点击菜单跳转链接时的事件推送 
      */
     CONST EVENT_VIEW = 'view';
 
@@ -99,9 +107,10 @@ Class Weixin {
      * 
      * @var object 
      */
-    private static $instance;
+    protected static $instance;
 
-    private function __construct() {
+    protected function __construct()
+    {
         
     }
 
@@ -114,7 +123,8 @@ Class Weixin {
      * @param boolean $isService 是否是服务号
      * @return Weixin
      */
-    public static function init($token, $appid = null, $secret = null, $isService = FALSE) {
+    public static function init($token, $appid = null, $secret = null, $isService = FALSE)
+    {
         if (!isset(self::$instance)) {
             $class = __CLASS__;
             self::$instance = new $class;
@@ -136,25 +146,34 @@ Class Weixin {
      * 返回唯一的实例
      * @return Weixin
      */
-    public static function instance() {
+    public static function instance()
+    {
         if (!isset(self::$instance)) {
             die('instance not exist');
         }
         return self::$instance;
     }
 
+    public function setDevelopMode($value = false)
+    {
+        $this->develop = $value;
+        return $this;
+    }
+
     /**
      * 设置缓存目录
      * @param type $dir 缓存目录
      */
-    public function setCacheDir($dir) {
+    public function setCacheDir($dir)
+    {
         $this->cacheDir = $dir;
     }
 
     /**
      * 监听用户消息
      */
-    public function listen() {
+    public function listen()
+    {
         if (isset($_SERVER['WEIXIN_NO_SIGNATURE'])) {
             $check = TRUE;
         } else {
@@ -173,11 +192,10 @@ Class Weixin {
             if (!$data) {
                 return;
             }
-            $this->parseData($data);
-            $type = $this->getMsgType();
-            if ($this->data->MsgType == 'event') {
-                for ($i = 1; $i <= sizeof($type); $i++) {
-                    $_type = implode('.', array_slice($type, 0, sizeof($type) - $i + 1));
+            $type = $this->parseData($data)->getMsgType();
+            if ($this->data->MsgType == self::TYPE_EVENT) {
+                for ($i = 0; $i <= sizeof($type); $i++) {
+                    $_type = implode('.', array_slice($type, 0, sizeof($type) - $i));
                     if (isset($this->callbacks[$_type])) {
                         call_user_func($this->callbacks[$_type], $this->data);
                         break;
@@ -194,17 +212,30 @@ Class Weixin {
     /**
      * 对不同类型的用户消息设置对应的处理过程（回调函数）
      * 若设置了$type为undefind的回调函数，则所有未指定回调函数的消息类型将调用此函数
-     * 接收到的用户消息（SimpleXMLElement）将作为唯一参数传递给回调函数
+     * 接收到的用户消息（WeixinResult）将作为唯一参数传递给回调函数
      * @see http://mp.weixin.qq.com/wiki/index.php?title=%E6%8E%A5%E6%94%B6%E6%99%AE%E9%80%9A%E6%B6%88%E6%81%AF
      * 
-     * @param string $type	消息类型
+     * @param string|array $type	消息类型,事件类型可以使用数组来描述,元素依次为 事件,事件名,事件值
      * @param callback $callback 回调函数
      */
-    public function setCallback($type, $callback) {
+    public function setCallback($type, $callback)
+    {
         if (is_array($type)) {
             $this->callbacks[implode('.', $type)] = $callback;
         } else {
             $this->callbacks[strtolower($type)] = $callback;
+        }
+        return $this;
+    }
+
+    /**
+     * 批量接口,使用方式参考setCallback
+     * @param array $callbacks
+     */
+    public function setCallbacks($callbacks = array())
+    {
+        foreach ($callbacks as $callback) {
+            $this->setCallback($callback['type'], $callback['callback']);
         }
         return $this;
     }
@@ -218,7 +249,8 @@ Class Weixin {
      * 
      * @return string 发送消息的用户OpenID
      */
-    public function getSender() {
+    public function getSender()
+    {
         return $this->sender;
     }
 
@@ -228,7 +260,8 @@ Class Weixin {
      * @param string $content 消息内容
      * @return array
      */
-    public function responseText($content) {
+    public function responseText($content)
+    {
         if ($this->isService) {
             return $this->sendText($this->sender, $content);
         } else {
@@ -244,7 +277,8 @@ Class Weixin {
      * @param string $mediaid 通过上传多媒体文件，得到的id
      * @return array
      */
-    public function responseImage($mediaid) {
+    public function responseImage($mediaid)
+    {
         if ($this->isService) {
             return $this->sendImage($this->sender, $mediaid);
         } else {
@@ -260,7 +294,8 @@ Class Weixin {
      * @param string $mediaid 通过上传多媒体文件，得到的id
      * @return array
      */
-    public function responseVoice($mediaid) {
+    public function responseVoice($mediaid)
+    {
         if ($this->isService) {
             return $this->sendVoice($this->sender, $mediaid);
         } else {
@@ -278,7 +313,8 @@ Class Weixin {
      * @param string $desc 视频消息的描述
      * @return array
      */
-    public function responseVideo($mediaid, $title = '', $desc = '') {
+    public function responseVideo($mediaid, $title = '', $desc = '')
+    {
         if ($this->isService) {
             return $this->sendVideo($this->sender, $mediaid, $title, $desc);
         } else {
@@ -298,7 +334,8 @@ Class Weixin {
      * @param string $hqurl 高质量音乐链接，WIFI环境优先使用该链接播放音乐
      * @return array
      */
-    public function responseMusic($mediaid, $title = '', $desc = '', $url = '', $hqurl = '') {
+    public function responseMusic($mediaid, $title = '', $desc = '', $url = '', $hqurl = '')
+    {
         if ($this->isService) {
             return $this->sendMusic($this->sender, $mediaid, $title, $desc, $url, $hqurl);
         } else {
@@ -315,7 +352,8 @@ Class Weixin {
      * @param array $articles 多个article构成的数组，article格式为array('title'=>'','description'=>'','picurl'=>'','url'=>'')
      * @return array
      */
-    public function responseNews($articles) {
+    public function responseNews($articles)
+    {
         if ($this->isService) {
             return $this->sendNews($this->sender, $articles);
         } else {
@@ -335,7 +373,8 @@ Class Weixin {
         }
     }
 
-    private function response() {
+    protected function response()
+    {
         if ($this->responseLock)
             return;
         $this->responseLock = TRUE;
@@ -358,7 +397,8 @@ Class Weixin {
      * @param string $content 消息内容
      * @return array
      */
-    public function sendText($sendTo, $content) {
+    public function sendText($sendTo, $content)
+    {
         $data['touser'] = $sendTo;
         $data['msgtype'] = 'text';
         $data['text']['content'] = $content;
@@ -372,7 +412,8 @@ Class Weixin {
      * @param string $mediaid 通过上传多媒体文件，得到的id 
      * @return array
      */
-    public function sendImage($sendTo, $mediaid) {
+    public function sendImage($sendTo, $mediaid)
+    {
         $data['touser'] = $sendTo;
         $data['msgtype'] = 'image';
         $data['image']['media_id'] = $mediaid;
@@ -386,7 +427,8 @@ Class Weixin {
      * @param string $mediaid 通过上传多媒体文件，得到的id 
      * @return array
      */
-    public function sendVoice($sendTo, $mediaid) {
+    public function sendVoice($sendTo, $mediaid)
+    {
         $data['touser'] = $sendTo;
         $data['msgtype'] = 'voice';
         $data['voice']['media_id'] = $mediaid;
@@ -402,7 +444,8 @@ Class Weixin {
      * @param string $desc 视频消息的描述
      * @return array
      */
-    public function sendVideo($sendTo, $mediaid, $title = '', $desc = '') {
+    public function sendVideo($sendTo, $mediaid, $title = '', $desc = '')
+    {
         $data['touser'] = $sendTo;
         $data['msgtype'] = 'video';
         $data['video'] = array(
@@ -424,7 +467,8 @@ Class Weixin {
      * @param string $hqurl 高质量音乐链接，WIFI环境优先使用该链接播放音乐
      * @return array
      */
-    public function sendMusic($sendTo, $mediaid, $title = '', $desc = '', $url = '', $hqurl = '') {
+    public function sendMusic($sendTo, $mediaid, $title = '', $desc = '', $url = '', $hqurl = '')
+    {
         $data['touser'] = $sendTo;
         $data['msgtype'] = 'music';
         $data['music'] = array(
@@ -446,7 +490,8 @@ Class Weixin {
      * @see http://mp.weixin.qq.com/wiki/index.php?title=%E5%8F%91%E9%80%81%E5%AE%A2%E6%9C%8D%E6%B6%88%E6%81%AF#.E5.8F.91.E9.80.81.E5.9B.BE.E6.96.87.E6.B6.88.E6.81.AF
      * @return array
      */
-    public function sendNews($sendTo, $articles) {
+    public function sendNews($sendTo, $articles)
+    {
         $data['touser'] = $sendTo;
         $data['msgtype'] = 'news';
         $data['news']['articles'] = $articles;
@@ -463,7 +508,8 @@ Class Weixin {
      * 
      * @return array
      */
-    public function getGroup() {
+    public function getGroup()
+    {
         $json = $this->request('https://api.weixin.qq.com/cgi-bin/groups/get');
         return json_decode($json, TRUE);
     }
@@ -474,7 +520,8 @@ Class Weixin {
      * @param string $name  分组名字（30个字符以内）
      * @return array
      */
-    public function createGroup($name) {
+    public function createGroup($name)
+    {
         $json = $this->request('https://api.weixin.qq.com/cgi-bin/groups/create', array('group' => array('name' => $name)), 'post');
         return json_decode($json, TRUE);
     }
@@ -486,7 +533,8 @@ Class Weixin {
      * @param string $name 分组名字（30个字符以内）
      * @return array
      */
-    public function updateGroup($id, $name) {
+    public function updateGroup($id, $name)
+    {
         $data = array('group' => array('name' => $name, 'id' => $id));
         $json = $this->request('https://api.weixin.qq.com/cgi-bin/groups/update', $data, 'post');
         return json_decode($json, TRUE);
@@ -499,7 +547,8 @@ Class Weixin {
      * @param int $toGroupId 分组id
      * @return array
      */
-    public function updateMenberGroup($openId, $toGroupId) {
+    public function updateMenberGroup($openId, $toGroupId)
+    {
         $data = array('openid' => $openId, 'to_groupid' => $toGroupId);
         $json = $this->request('https://api.weixin.qq.com/cgi-bin/groups/members/update', $data, 'post');
         return json_decode($json, TRUE);
@@ -512,7 +561,8 @@ Class Weixin {
      * @param string $openId 普通用户的标识，对当前公众号唯一
      * @return array
      */
-    public function getUserInfo($openId) {
+    public function getUserInfo($openId)
+    {
         $url = 'https://api.weixin.qq.com/cgi-bin/user/info?openid=' . $openId;
         $json = $this->request($url);
         return json_decode($json, TRUE);
@@ -525,7 +575,8 @@ Class Weixin {
      * @param string $nextOpenId
      * @return array
      */
-    public function getUserList($nextOpenId = NULL) {
+    public function getUserList($nextOpenId = NULL)
+    {
         $url = 'https://api.weixin.qq.com/cgi-bin/user/get';
         if ($nextOpenId) {
             $url .= '?next_openid=' . $nextOpenId;
@@ -543,7 +594,8 @@ Class Weixin {
      * 
      * @return array
      */
-    public function getMenu() {
+    public function getMenu()
+    {
         $json = $this->request('https://api.weixin.qq.com/cgi-bin/menu/get');
         return json_decode($json, TRUE);
     }
@@ -554,7 +606,8 @@ Class Weixin {
      * @param mixed $buttons 自定义菜单数组 或 WeixinMenu辅助类
      * @return array
      */
-    public function createMenu($buttons) {
+    public function createMenu($buttons)
+    {
         if ($buttons instanceof WeixinMenu) {
             $data = $buttons->toArray();
         } else {
@@ -569,7 +622,8 @@ Class Weixin {
      * 
      * @return array
      */
-    public function deleteMenu() {
+    public function deleteMenu()
+    {
         $json = $this->request('https://api.weixin.qq.com/cgi-bin/menu/delete');
         return json_decode($json, TRUE);
     }
@@ -585,7 +639,8 @@ Class Weixin {
      * @param int $expire 该二维码有效时间，以秒为单位。 最大不超过1800。 若设置为0或空值，则二维码为永久二维码，反之则为临时二维码
      * @return array
      */
-    public function createQRCode($id, $expire = NULL) {
+    public function createQRCode($id, $expire = NULL)
+    {
         if ($expire) {
             $data['expire_seconds'] = intval($expire);
             $data['action_name'] = 'QR_SCENE';
@@ -603,7 +658,8 @@ Class Weixin {
 
     ########################################
 
-    private function checkSignature() {
+    protected function checkSignature()
+    {
         if (empty($_GET['signature']) || empty($_GET['timestamp']) || empty($_GET['nonce'])) {
             return FALSE;
         }
@@ -630,14 +686,17 @@ Class Weixin {
      * @param string $data
      * @return string
      */
-    private function parseData($data) {
+    protected function parseData($data)
+    {
         $this->data = new WeixinResult($data);
         $this->sender = $this->data->FromUserName;
+        return $this;
     }
 
-    private function getMsgType() {
-        if ($this->data->MsgType == 'event') {
-            $type = array('event');
+    protected function getMsgType()
+    {
+        if ($this->data->MsgType == self::TYPE_EVENT) {
+            $type = array($this->data->MsgType);
             $type[] = $this->data->Event;
             if (isset($this->data->EventKey)) {
                 $type[] = $this->data->EventKey;
@@ -648,7 +707,8 @@ Class Weixin {
         }
     }
 
-    private function getAccessToken() {
+    protected function getAccessToken()
+    {
 
         if (!$this->develop) {
             $cache = $this->getCache('acccessToken');
@@ -682,7 +742,8 @@ Class Weixin {
      * @param array $data
      * @return string 
      */
-    private function send($data) {
+    protected function send($data)
+    {
         $url = 'https://api.weixin.qq.com/cgi-bin/message/custom/send';
         return json_decode($this->request($url, $data, 'post'), TRUE);
     }
@@ -694,7 +755,8 @@ Class Weixin {
      * @param string $method
      * @return string
      */
-    private function request($url, $data = array(), $method = 'get') {
+    protected function request($url, $data = array(), $method = 'get')
+    {
         if (!$this->accessToken) {
             die("Cannot get accessToken");
         }
@@ -721,7 +783,8 @@ Class Weixin {
      * @param array $option
      * @return string
      */
-    private function curlGet($url, $params = array(), $option = array()) {
+    protected function curlGet($url, $params = array(), $option = array())
+    {
 
         if (!empty($params)) {
             $p = http_build_query($params);
@@ -750,7 +813,8 @@ Class Weixin {
      * @param array $option
      * @return string
      */
-    private function curlPost($url, $params = NULL, $option = array()) {
+    protected function curlPost($url, $params = NULL, $option = array())
+    {
 
         if (is_array($params) && !empty($params)) {
             $p = http_build_query($params);
@@ -776,7 +840,8 @@ Class Weixin {
      * @param string $string
      * @return string
      */
-    private function unicodeDecode($string) {
+    protected function unicodeDecode($string)
+    {
         $matches = NULL;
         preg_match_all("/\\\\u\w{4}/i", $string, $matches);
         if (!empty($matches)) {
@@ -795,17 +860,20 @@ Class Weixin {
      * 缓存
      * @todo 使用缓存类来扩展缓存功能
      */
-    private function getCache($key) {
+    protected function getCache($key)
+    {
         $cacheHandel = 'get' . $this->cacheType . 'Cache';
         return $this->$cacheHandel($key);
     }
 
-    private function setCache($key, $value = NULL) {
+    protected function setCache($key, $value = NULL)
+    {
         $cacheHandel = 'set' . $this->cacheType . 'Cache';
         return $this->$cacheHandel($key, $value);
     }
 
-    private function getFileCache($key) {
+    protected function getFileCache($key)
+    {
         $cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
         if (file_exists($cachefile)) {
             $_cache = file_get_contents($cachefile);
@@ -816,7 +884,8 @@ Class Weixin {
         return false;
     }
 
-    private function setFileCache($key, $value = NULL) {
+    protected function setFileCache($key, $value = NULL)
+    {
         $cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
         $cache = array($key => $value);
         file_put_contents($cachefile, serialize($cache));
