@@ -198,9 +198,13 @@ Class Weixin
                     }
                 }
             } else if (isset($this->callbacks[$type])) {
-                call_user_func($this->callbacks[$type], $this->data);
+                foreach ($this->callbacks[$type] as $callback) {
+                    call_user_func($callback, $this->data);
+                }
             } elseif (isset($this->callbacks[self::TYPE_UNDEFINED])) {
-                call_user_func($this->callbacks[self::TYPE_UNDEFINED], $this->data);
+                foreach ($this->callbacks[self::TYPE_UNDEFINED] as $callback) {
+                    call_user_func($callback, $this->data);
+                }
             }
         }
     }
@@ -216,9 +220,9 @@ Class Weixin
      */
     public function setCallback($type, $callback) {
         if (is_array($type)) {
-            $this->callbacks[implode('.', $type)] = $callback;
+            $this->callbacks[implode('.', $type)][] = $callback;
         } else {
-            $this->callbacks[strtolower($type)] = $callback;
+            $this->callbacks[strtolower($type)][] = $callback;
         }
         return $this;
     }
