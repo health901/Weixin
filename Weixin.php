@@ -724,7 +724,7 @@ Class Weixin
         if (!$this->accessToken) {
             die("Cannot get accessToken");
         }
-        if (FALSE === strpos('?', $url)) {
+        if (FALSE === strpos($url, '?')) {
             $connect = '?';
         } else {
             $connect = '&';
