@@ -84,7 +84,7 @@ Class Weixin
     CONST EVENT_UNSUBSCRIBE = 'unsubscribe';
 
     /**
-     * 取消订阅事件
+     * 扫描带参数二维码事件
      */
     CONST EVENT_SCAN = 'scan';
 
@@ -125,8 +125,7 @@ Class Weixin
      */
     public static function init($token, $appid = null, $secret = null, $isService = FALSE) {
         if (!isset(self::$instance)) {
-            $class = __CLASS__;
-            self::$instance = new $class;
+            self::instance();
         }
         self::$instance->token = $token;
         self::$instance->isService = $isService;
@@ -147,7 +146,8 @@ Class Weixin
      */
     public static function instance() {
         if (!isset(self::$instance)) {
-            die('instance not exist');
+            $class = __CLASS__;
+            self::$instance = new $class;
         }
         return self::$instance;
     }
@@ -163,6 +163,7 @@ Class Weixin
      */
     public function setCacheDir($dir) {
         $this->cacheDir = $dir;
+        return $this;
     }
 
     /**
