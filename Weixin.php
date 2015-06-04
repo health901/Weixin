@@ -129,7 +129,7 @@ Class Weixin
         }
         self::$instance->token = $token;
         self::$instance->isService = $isService;
-        if ($appid && $token) {
+        if ($appid && $secret) {
             self::$instance->appid = $appid;
             self::$instance->secret = $secret;
             self::$instance->accessToken = self::$instance->getAccessToken();
