@@ -46,7 +46,7 @@ class WeixinResult
 
         $method = 'get' . $name;
         if (method_exists($this, $method)) {
-            return $this->$method;
+            return $this->$method();
         }
     }
 
