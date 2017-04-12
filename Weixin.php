@@ -5,8 +5,8 @@
  * 
  * @author Viking Robin <admin@vkrobin.com>
  */
-require_once('WeixinMenu.php');
-require_once('WeixinResult.php');
+require_once(__DIR__ . '/WeixinMenu.php');
+require_once(__DIR__ . '/WeixinResult.php');
 
 /**
  * @property string $cacheType 缓存类型
@@ -33,6 +33,7 @@ Class Weixin
     protected $responseLock = False;
     public $cacheType = 'File';
     public $cacheDir = NULL;
+    public $cacheFile = NULL;
     public $develop = FALSE;
 
     /**
@@ -167,6 +168,17 @@ Class Weixin
     }
 
     /**
+     * 设置缓存路径,带文件名
+     * @param type $file 缓存路径
+     */
+    public function setCachePath($file) {
+        $pathinfo = pathinfo($file);
+        $this->setCacheDir($pathinfo['dirname']);
+        $this->cacheFile = $pathinfo['basename'];
+        return $this;
+    }
+
+    /**
      * 监听用户消息
      */
     public function listen() {
@@ -193,7 +205,9 @@ Class Weixin
                 for ($i = 0; $i <= sizeof($type); $i++) {
                     $_type = implode('.', array_slice($type, 0, sizeof($type) - $i));
                     if (isset($this->callbacks[$_type])) {
-                        call_user_func($this->callbacks[$_type], $this->data);
+                        foreach ($this->callbacks[$_type] as $callback) {
+                            call_user_func($callback, $this->data);
+                        }
                         break;
                     }
                 }
@@ -678,7 +692,7 @@ Class Weixin
         }
     }
 
-    protected function getAccessToken() {
+    public function getAccessToken() {
 
         if (!$this->develop) {
             $cache = $this->getCache('acccessToken');
@@ -725,6 +739,7 @@ Class Weixin
      * @return string
      */
     protected function request($url, $data = array(), $method = 'get') {
+        $this->accessToken = $this->getAccessToken();
         if (!$this->accessToken) {
             die("Cannot get accessToken");
         }
@@ -835,8 +850,14 @@ Class Weixin
         return $this->$cacheHandel($key, $value);
     }
 
+    protected function getCacheFile() {
+        $dir = $this->cacheDir ? $this->cacheDir : dirname(__FILE__);
+        $file = $this->cacheFile ? $this->cacheFile : 'weixin.cache';
+        return $dir . '/' . $file;
+    }
+
     protected function getFileCache($key) {
-        $cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
+        $cachefile = $this->getCacheFile();
         if (file_exists($cachefile)) {
             $_cache = file_get_contents($cachefile);
             if ($_cache && $cache = unserialize($_cache)) {
@@ -847,7 +868,7 @@ Class Weixin
     }
 
     protected function setFileCache($key, $value = NULL) {
-        $cachefile = $this->cacheDir ? $this->cacheDir . '/weixin.cache' : dirname(__FILE__) . '/weixin.cache';
+        $cachefile = $this->getCacheFile();
         $cache = array($key => $value);
         file_put_contents($cachefile, serialize($cache));
     }
