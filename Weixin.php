@@ -495,6 +495,29 @@ Class Weixin
         $data['news']['articles'] = $articles;
         return $this->send($data);
     }
+    /**
+     * 发送模板消息
+     * @param string $sendTo 普通用户openid
+     * @param string $templateId 模板消息ID
+     * @param string $url 模板跳转链接
+     * @param array $tmpData 模板消息数据
+     * @param array $mimiProgram
+     * @see https://mp.weixin.qq.com/wiki?action=doc&id=mp1433751277&t=0.8050389632632116#6
+     * @return array
+     */
+    public function sendTemplate($sendTo, $templateId, $tmpData, $url = NULL, $mimiProgram = NULL){
+        $api = "https://api.weixin.qq.com/cgi-bin/message/template/send";
+        $data['touser'] = $sendTo;
+        $data['template_id'] = $templateId;
+        $data['data'] = $tmpData;
+        if($url){
+            $data['url'] = $url;
+        }
+        if($mimiProgram){
+            $data['miniprogram'] = $mimiProgram;
+        }
+        return json_decode($this->request($api, $data, 'post'), TRUE);
+    }
 
     ########################
     # 用户管理接口
