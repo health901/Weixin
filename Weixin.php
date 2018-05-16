@@ -533,7 +533,7 @@ Class Weixin
      * @return array
      */
     public function sendTemplate($sendTo, $templateId, $tmpData, $url = NULL, $mimiProgram = NULL){
-        $api = "https://api.weixin.qq.com/cgi-bin/message/template/send";
+        $api = "message/template/send";
         $data['touser'] = $sendTo;
         $data['template_id'] = $templateId;
         $data['data'] = $tmpData;
