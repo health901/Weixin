@@ -1,18 +1,19 @@
 <?php
+namespace VRobin;
 
 /**
  * 微信公众接口SDK
  * 
  * @author Viking Robin <admin@vkrobin.com>
  */
-require_once(__DIR__ . '/WeixinMenu.php');
-require_once(__DIR__ . '/WeixinResult.php');
 
 /**
  * @property string $cacheType 缓存类型
  * @property string $cacheDir 缓存目录 
  * @property boolean $develop 开发者模式 
  */
+
+
 Class Weixin
 {
 

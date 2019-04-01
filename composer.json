@@ -1,0 +1,21 @@
+{
+    "name": "vrobin/weixin",
+    "type": "library",
+    "description": "微信公众平台 PHP SDK （订阅号/服务号",
+    "keywords": ["weixin"],
+    "homepage": "https://github.com/health901/Weixin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "health901"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "VRobin\\": "src/"
+        }
+    }
+}
