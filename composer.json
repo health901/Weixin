@@ -1,10 +1,11 @@
 {
     "name": "vrobin/weixin",
     "type": "library",
-    "description": "微信公众平台 PHP SDK （订阅号/服务号",
+    "description": "Weixin SDK",
     "keywords": ["weixin"],
     "homepage": "https://github.com/health901/Weixin",
     "license": "MIT",
+    "version":"2.0",
     "authors": [
         {
             "name": "health901"
