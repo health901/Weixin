@@ -336,7 +336,7 @@ class WeixinResponser
         if ($this->data->MsgType == self::TYPE_EVENT) {
             $type = array($this->data->MsgType);
             $type[] = strtolower($this->data->Event);
-            if (isset($this->data->EventKey)) {
+            if ($this->data->EventKey) {
                 $type[] = strtolower($this->data->EventKey);
             }
             return $type;
