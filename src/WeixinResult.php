@@ -1,5 +1,5 @@
 <?php
-namespace VRobin;
+namespace VRobin\Weixin;
 /**
  * 接受消息结果辅助类
  * @author Viking Robin <admin@vkrobin.com>

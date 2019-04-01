@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "VRobin\\": "src/"
+            "VRobin\\Weixin\\": "src/"
         }
     }
 }
