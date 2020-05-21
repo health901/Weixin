@@ -1,5 +1,5 @@
 <?php
-namespace VRobin\Weixin;
+namespace VRobin\Weixin\Message;
 /**
  * 接受消息结果辅助类
  * @author Viking Robin <admin@vkrobin.com>
@@ -28,7 +28,7 @@ namespace VRobin\Weixin;
  * @property-read string $Format			语音格式，如amr，speex等 
  * @property-read string $MsgId             消息id
  */
-class WeixinResult
+class Result
 {
 
     protected $xml;

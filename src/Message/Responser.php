@@ -1,17 +1,83 @@
 <?php
 
-namespace VRobin\Weixin;
 
-/**
- * 微信响应器
- * Class WeixinResponser
- * @package VRobin\Weixin
- */
-class WeixinResponser
+namespace VRobin\Weixin\Message;
+
+
+class Responser
 {
+
+    /**
+     * 文本消息
+     */
+    const TYPE_TEXT = 'text';
+    /*
+     * 图片消息
+     */
+    const TYPE_IMAGE = 'image';
+    /*
+     * 音频消息
+     */
+    const TYPE_VOICE = 'voice';
+
+    /**
+     * 视频消息
+     */
+    const TYPE_VEDIO = 'video';
+
+    /**
+     * 地理位置消息
+     */
+    const TYPE_LOCATION = 'location';
+
+    /**
+     * 链接消息
+     */
+    const TYPE_LINK = 'link';
+
+    /**
+     * 事件推送
+     */
+    const TYPE_EVENT = 'event';
+
+    /**
+     * 所有未被捕获的消息
+     */
+    const TYPE_UNDEFINED = 'undefined';
+
+    /**
+     * 订阅事件
+     */
+    const EVENT_SUBSCRIBE = 'subscribe';
+
+    /**
+     * 取消订阅事件
+     */
+    const EVENT_UNSUBSCRIBE = 'unsubscribe';
+
+    /**
+     * 扫描带参数二维码事件
+     */
+    const EVENT_SCAN = 'scan';
+
+    /**
+     * 上报地理位置事件 (自动上报事件,手动上报为location消息,不是event消息)
+     */
+    const EVENT_LOCATION = 'location';
+
+    /*
+     * 点击菜单拉取消息时的事件推送
+     */
+    const EVENT_CLICK = 'click';
+
+    /**
+     * 点击菜单跳转链接时的事件推送
+     */
+    const EVENT_VIEW = 'view';
+
     /**
      *
-     * @var WeixinResult
+     * @var Result
      */
     protected $data;
     protected $token;
@@ -20,77 +86,9 @@ class WeixinResponser
     protected $responseLock = False;
     protected $sender;
 
-    /**
-     * 文本消息
-     */
-    CONST TYPE_TEXT = 'text';
-    /*
-     * 图片消息
-     */
-    CONST TYPE_IMAGE = 'image';
-    /*
-     * 音频消息
-     */
-    CONST TYPE_VOICE = 'voice';
 
     /**
-     * 视频消息
-     */
-    CONST TYPE_VEDIO = 'video';
-
-    /**
-     * 地理位置消息
-     */
-    CONST TYPE_LOCATION = 'location';
-
-    /**
-     * 链接消息
-     */
-    CONST TYPE_LINK = 'link';
-
-    /**
-     * 事件推送
-     */
-    CONST TYPE_EVENT = 'event';
-
-    /**
-     * 所有未被捕获的消息
-     */
-    CONST TYPE_UNDEFINED = 'undefined';
-
-    /**
-     * 订阅事件
-     */
-    CONST EVENT_SUBSCRIBE = 'subscribe';
-
-    /**
-     * 取消订阅事件
-     */
-    CONST EVENT_UNSUBSCRIBE = 'unsubscribe';
-
-    /**
-     * 扫描带参数二维码事件
-     */
-    CONST EVENT_SCAN = 'scan';
-
-    /**
-     * 上报地理位置事件 (自动上报事件,手动上报为location消息,不是event消息)
-     */
-    CONST EVENT_LOCATION = 'location';
-
-    /*
-     * 点击菜单拉取消息时的事件推送
-     */
-    CONST EVENT_CLICK = 'click';
-
-    /**
-     * 点击菜单跳转链接时的事件推送
-     */
-    CONST EVENT_VIEW = 'view';
-
-
-    /**
-     * WeixinResponser constructor.
+     * Responser constructor.
      * @param $token
      */
     public function __construct($token)
@@ -103,17 +101,12 @@ class WeixinResponser
      */
     public function listen()
     {
-        if (isset($_SERVER['WEIXIN_NO_SIGNATURE'])) {
-            $check = TRUE;
-        } else {
+
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
             $check = $this->checkSignature();
             if (FALSE === $check) {
                 return;
-            }
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            if ($check !== TRUE) {
+            } else {
                 echo $check;
             }
         } else {
@@ -122,6 +115,7 @@ class WeixinResponser
                 return;
             }
             $type = $this->parseData($data)->getMsgType();
+
             if ($this->data->MsgType == self::TYPE_EVENT) {
                 for ($i = 0; $i <= sizeof($type); $i++) {
                     $_type = implode('.', array_slice($type, 0, sizeof($type) - $i));
@@ -152,7 +146,7 @@ class WeixinResponser
      *
      * @param string|array $type 消息类型,事件类型可以使用数组来描述,元素依次为 事件,事件名,事件值
      * @param callback $callback 回调函数
-     * @return WeixinResponser
+     * @return self
      */
     public function setCallback($type, $callback)
     {
@@ -167,7 +161,7 @@ class WeixinResponser
     /**
      * 批量接口,使用方式参考setCallback
      * @param array $callbacks
-     * @return WeixinResponser
+     * @return self
      */
     public function setCallbacks($callbacks = array())
     {
@@ -191,7 +185,7 @@ class WeixinResponser
      * 回复文本消息
      *
      * @param string $content 消息内容
-     * @return array
+     * @return void
      */
     public function responseText($content)
     {
@@ -254,7 +248,7 @@ class WeixinResponser
     public function responseMusic($mediaid, $title = '', $desc = '', $url = '', $hqurl = '')
     {
         $this->xml .= "<MsgType><![CDATA[music]]></MsgType>";
-        $this->xml .= "<Music><Title><![CDATA[{$title}]]></Title><Description><![CDATA[DESCRIPTION{$desc}]]></Description><MusicUrl><![CDATA[{$url}]]></MusicUrl><HQMusicUrl><![CDATA[{$hqurl}]]></HQMusicUrl><ThumbMediaId><![CDATA[{$mediaid}]]></ThumbMediaId></Music>";
+        $this->xml .= "<Music><Title><![CDATA[{$title}]]></Title><Description><![CDATA[{$desc}]]></Description><MusicUrl><![CDATA[{$url}]]></MusicUrl><HQMusicUrl><![CDATA[{$hqurl}]]></HQMusicUrl><ThumbMediaId><![CDATA[{$mediaid}]]></ThumbMediaId></Music>";
         $this->response();
     }
 
@@ -322,11 +316,11 @@ class WeixinResponser
     /**
      *
      * @param string $data
-     * @return WeixinResponser
+     * @return self
      */
     protected function parseData($data)
     {
-        $this->data = new WeixinResult($data);
+        $this->data = new Result($data);
         $this->sender = $this->data->FromUserName;
         return $this;
     }
@@ -344,5 +338,4 @@ class WeixinResponser
             return strtolower($this->data->MsgType);
         }
     }
-
 }

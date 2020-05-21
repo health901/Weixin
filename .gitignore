@@ -2,3 +2,4 @@
 *.cache
 /demo
 /.idea
+vendor

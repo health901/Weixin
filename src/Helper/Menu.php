@@ -1,12 +1,12 @@
 <?php
 
-namespace VRobin\Weixin;
+namespace VRobin\Weixin\Helper;
 /**
  * 微信自定义菜单辅助类
  *
  * @author Viking Robin <admin@vkrobin.com>
  */
-Class WeixinMenu
+Class Menu
 {
 
     protected $buttons = array();

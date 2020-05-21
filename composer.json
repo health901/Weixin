@@ -5,14 +5,14 @@
     "keywords": ["weixin"],
     "homepage": "https://github.com/health901/Weixin",
     "license": "MIT",
-    "version":"2.0",
+    "version":"3.0",
     "authors": [
         {
             "name": "health901"
         }
     ],
     "require": {
-        "php": ">=5.3.0"
+        "php": ">=7.0"
     },
     "autoload": {
         "psr-4": {
