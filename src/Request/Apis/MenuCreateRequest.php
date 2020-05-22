@@ -10,6 +10,7 @@ use VRobin\Weixin\Request\Request;
 class MenuCreateRequest extends Request
 {
     protected $api = 'menu/create';
+
     protected $method = 'POST';
 
     public function setMenu($data)

@@ -15,6 +15,7 @@ class MaterialGetMaterialRequest extends Request
 {
     protected $api = 'material/get_material';
 
+    protected $method = 'POST';
 
     public function setMediaId($media_id)
     {

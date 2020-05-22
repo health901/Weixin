@@ -24,15 +24,7 @@ Class Menu
         if (sizeof($this->buttons) == 3) {
             return FALSE;
         }
-        if ($type == 'view') {
-            $button['type'] = 'view';
-            $button['url'] = $value;
-        } else {
-            $button['type'] = 'click';
-            $button['key'] = $value;
-        }
-        $button['name'] = $name;
-        $this->buttons[] = $button;
+        $this->buttons[] = $this->button($name,$type,$value);
     }
 
     /**
@@ -53,18 +45,31 @@ Class Menu
         if (sizeof($this->buttons[$index]) == 5) {
             return FALSE;
         }
-        if ($type == 'view') {
-            $button['type'] = 'view';
-            $button['url'] = $value;
-        } else {
-            $button['type'] = 'click';
-            $button['key'] = $value;
-        }
-        $button['name'] = $name;
-        $this->buttons[$index]['sub'][] = $button;
+        $this->buttons[$index]['sub'][] = $this->button($name,$type,$value);
         return TRUE;
     }
 
+    protected function button($name,$type, $value){
+        $button['type'] = $type;
+        switch ($type){
+            case 'view':
+                $button['url'] = $value;
+                break;
+            case 'miniprogram':
+                $button['url'] = $value['url'];
+                $button['appid'] = $value['appid'];
+                $button['pagepath'] = $value['pagepath'];
+                break;
+            case 'media_id':
+                $button['media_id'] = $value;
+                break;
+            default:
+                $button['key'] = $value;
+                break;
+        }
+        $button['name'] = $name;
+        return $button;
+    }
     /**
      * 导出数组
      *

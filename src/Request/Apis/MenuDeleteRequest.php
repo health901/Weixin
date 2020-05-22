@@ -9,4 +9,6 @@ use VRobin\Weixin\Request\Request;
 class MenuDeleteRequest extends Request
 {
     protected $api = 'menu/delete';
+
+    protected $method = 'POST';
 }

@@ -15,6 +15,8 @@ class MediaUploadimgRequest extends Request
 {
     protected $api = 'media/uploadimg';
 
+    protected $method = 'POST';
+
     public function setMediaFile($file)
     {
         $this->data['@media'] = $file;

@@ -15,6 +15,9 @@ class MaterialBatchgetMaterialRequest extends Request
 {
     protected $api = 'material/batchget_material';
 
+    protected $method = 'POST';
+
+
     public function __construct()
     {
         $this->data['offset'] = 0;

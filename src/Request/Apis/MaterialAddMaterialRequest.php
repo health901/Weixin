@@ -10,6 +10,8 @@ class MaterialAddMaterialRequest extends Request
 {
     protected $api = 'material/add_material';
 
+    protected $method = 'POST';
+
     /**
      * @param string $type 媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb）
      */

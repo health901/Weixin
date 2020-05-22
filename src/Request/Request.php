@@ -14,6 +14,8 @@ class Request
 
     protected $needToken = true;
 
+    protected $postJson = false;
+
     public function __set($name, $value)
     {
         $this->data[$name] = $value;
@@ -21,7 +23,7 @@ class Request
 
     public function getData()
     {
-        return $this->data;
+        return $this->postJson ? json_encode($this->data) : $this->data;
     }
 
     public function isNeedToken()

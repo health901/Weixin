@@ -39,7 +39,7 @@ class WeixinApi
     protected function makeService($tokenCreator = null, $cacheConfig = null)
     {
 
-        $this->tokenCreator = $tokenCreator ? new $tokenCreator : new TokenCreator($this->appid, $this->secret);
+        $this->tokenCreator = $tokenCreator ? $tokenCreator : new TokenCreator($this->appid, $this->secret);
 
         if ($cacheConfig) {
             Cache::getStore($cacheConfig['store'], $cacheConfig['config']);

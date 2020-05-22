@@ -16,6 +16,7 @@ class MaterialAddNewsRequest extends Request
 {
     protected $api = 'material/add_news';
 
+    protected $method = 'POST';
 
     public function setArticles($articles)
     {

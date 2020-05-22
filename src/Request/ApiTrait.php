@@ -25,8 +25,8 @@ trait ApiTrait
             $result = $this->get($url, $data);
         }
         $data = json_decode($result, true);
-        if (isset($data['errcode'])) {
-            throw new ApiException($data['errmsg'], $data['errcode']);
+        if (isset($data['errcode']) && $data['errcode']) {
+            throw new ApiException($data['errcode']. ':' .$data['errmsg'], $data['errcode']);
         }
         return $data;
     }

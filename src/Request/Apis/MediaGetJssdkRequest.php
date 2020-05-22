@@ -6,11 +6,15 @@ namespace VRobin\Weixin\Request\Apis;
 
 use VRobin\Weixin\Request\Request;
 
-class MaterialDelMaterialRequest extends Request
+/**
+ * 获取临时素材
+ * Class MediaGetJssdkRequest
+ * @package VRobin\Weixin\Request\Apis
+ */
+class MediaGetJssdkRequest extends Request
 {
-    protected $api = 'material/del_material';
+    protected $api = 'media/get/jssdk';
 
-    protected $method = 'POST';
 
     public function setMediaId($media_id)
     {

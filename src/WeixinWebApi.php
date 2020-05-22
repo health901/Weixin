@@ -37,7 +37,7 @@ class WeixinWebApi
     protected function makeService($tokenCreator = null)
     {
 
-        $this->tokenCreator = $tokenCreator ? new $tokenCreator : new OAuthTokenCreator($this->appid, $this->secret);
+        $this->tokenCreator = $tokenCreator ? $tokenCreator : new OAuthTokenCreator($this->appid, $this->secret);
     }
 
     /**

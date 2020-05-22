@@ -15,6 +15,8 @@ class MaterialUpdateNewsRequest extends Request
 {
     protected $api = 'material/update_news';
 
+    protected $method = 'POST';
+
     public function setIndex($index)
     {
         $this->data['index'] = $index;
