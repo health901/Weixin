@@ -31,7 +31,7 @@ class Cache
      * @return mixed
      * @throws WeixinException
      */
-    public static function get($key, $value)
+    public static function get($key, $value = "")
     {
         if (!self::$instance) {
             self::getInstance();

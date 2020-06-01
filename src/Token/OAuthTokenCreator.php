@@ -44,7 +44,7 @@ class OAuthTokenCreator implements TokenInterface
     {
         $result = $this->request();
         $this->result = $result;
-        return $result['access_token'];
+        return $result;
     }
 
     /**

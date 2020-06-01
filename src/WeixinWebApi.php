@@ -62,7 +62,11 @@ class WeixinWebApi
         $this->tokenCreator->setCode($code);
         return $this->tokenCreator->getToken();
     }
-
+    
+    public function setToken($token){
+        $this->oauthAccessToken = $token;
+    }
+    
     /**
      * @return OAuthTokenCreator
      */
@@ -76,5 +80,19 @@ class WeixinWebApi
         $redirect_url = urlencode($redirect_url);
         $scope = $withUserInfo ? 'snsapi_base' : 'snsapi_userinfo';
         return "https://open.weixin.qq.com/connect/oauth2/authorize?appid={$this->appid}&redirect_uri={$redirect_url}&response_type=code&scope={$scope}&state=STATE#wechat_redirect";
+    }
+
+    /**
+     * @return string
+     */
+    public function getAppid(){
+        return $this->appid;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecret(){
+        return $this->secret;
     }
 }

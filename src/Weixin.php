@@ -48,4 +48,16 @@ class Weixin
         return new WeixinWebApi($appid, $secret, $tokenCreator);
     }
 
+    /**
+     * js 签名生成
+     * @param string $appid
+     * @param string $secret
+     * @param null $tokenCreator
+     * @param null $cacheConfig
+     * @return WeixinJsSignaturePack
+     * @throws Exception\WeixinException
+     */
+    public static function jsSignaturePack($appid = '', $secret = '', $tokenCreator = null, $cacheConfig = null){
+        return new WeixinJsSignaturePack($appid, $secret, $tokenCreator, $cacheConfig);
+    }
 }
