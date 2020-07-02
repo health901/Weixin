@@ -15,11 +15,12 @@ class Weixin
     /**
      * 返回公众号回复响应器
      * @param $token
+     * @param string $aesKey 消息加密秘钥
      * @return Responser
      */
-    public static function responser($token)
+    public static function responser($token, $aesKey = '')
     {
-        return new Responser($token);
+        return new Responser($token, $aesKey);
     }
 
     /**

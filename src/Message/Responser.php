@@ -85,15 +85,27 @@ class Responser
     protected $xml;
     protected $responseLock = False;
     protected $sender;
+    /**
+     * @var string
+     */
+    protected $aseKey;
+    /**
+     * @var string
+     */
+    protected $appid;
 
 
     /**
      * Responser constructor.
      * @param $token
+     * @param string $key
+     * @param string $appid
      */
-    public function __construct($token)
+    public function __construct($token, $key = '', $appid = "")
     {
         $this->token = $token;
+        $this->aseKey = $key;
+        $this->appid = $appid;
     }
 
     /**
@@ -287,7 +299,7 @@ class Responser
         $xml .= "<FromUserName><![CDATA[{$this->data->ToUserName}]]></FromUserName>";
         $xml .= "<CreateTime>{$t}</CreateTime>";
         $xml = "<xml>" . $xml . $this->xml . "</xml>";
-        echo $xml;
+        echo $this->aseKey ? $this->encrypt($xml) : $xml;
     }
 
     protected function checkSignature()
@@ -320,7 +332,7 @@ class Responser
      */
     protected function parseData($data)
     {
-        $this->data = new Result($data);
+        $this->data = new Result($data, $this->aseKey);
         $this->sender = $this->data->FromUserName;
         return $this;
     }
@@ -337,5 +349,47 @@ class Responser
         } else {
             return strtolower($this->data->MsgType);
         }
+    }
+
+    protected function encrypt($text)
+    {
+        //获得16位随机字符串，填充到明文之前
+        $random = $this->getRandomStr();
+        $text = $random . pack("N", strlen($text)) . $text . $this->appid;
+        //AES加密
+        $iv = str_repeat("\0", 16);
+        $key = $this->key . '=';
+        $data = openssl_encrypt($text, 'AES-256-CBC', base64_decode($key), OPENSSL_RAW_DATA, $iv);
+        $encryptData = base64_encode($data);
+        //生成签名
+        $timeStamp = time();
+        $sha1 = new SHA1;
+        $nonce = $this->getRandomStr(10);
+        $signature = $sha1->getSHA1($this->token, $timeStamp, $nonce, $encryptData);
+        //拼装XML
+        $format = "<xml>
+<Encrypt><![CDATA[%s]]></Encrypt>
+<MsgSignature><![CDATA[%s]]></MsgSignature>
+<TimeStamp>%s</TimeStamp>
+<Nonce><![CDATA[%s]]></Nonce>
+</xml>";
+        return sprintf($format, $encryptData, $signature, $timeStamp, $nonce);
+    }
+
+    /**
+     * 随机生成16位字符串
+     * @param int $len
+     * @return string 生成的字符串
+     */
+    protected function getRandomStr($len = 16)
+    {
+
+        $str = "";
+        $str_pol = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+        $max = strlen($str_pol) - 1;
+        for ($i = 0; $i < $len; $i++) {
+            $str .= $str_pol[mt_rand(0, $max)];
+        }
+        return $str;
     }
 }

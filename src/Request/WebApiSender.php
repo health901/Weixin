@@ -36,6 +36,6 @@ class WebApiSender
         if ($api->isNeedToken() && !$this->accessToken) {
             throw new TokenException("Cannot get accessToken");
         }
-        return $this->request($api->getApi(), $api->getData(), $api->getMethod());
+        return $this->request($api->getApi(), $api->getData(), $api->getMethod(), $api->returnRaw());
     }
 }

@@ -14,10 +14,11 @@ trait ApiTrait
      * @param string $url
      * @param array $data
      * @param string $method
+     * @param bool $raw
      * @return string
      * @throws ApiException
      */
-    public function request($url, $data = array(), $method = 'get')
+    public function request($url, $data = array(), $method = 'get', $raw = false)
     {
         if ($method == 'post') {
             $result = $this->post($url, $data);
@@ -28,7 +29,7 @@ trait ApiTrait
         if (isset($data['errcode']) && $data['errcode']) {
             throw new ApiException($data['errcode']. ':' .$data['errmsg'], $data['errcode']);
         }
-        return $data;
+        return $raw ? $result : $data;
     }
 
     protected function get($api, $data)

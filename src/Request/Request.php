@@ -16,6 +16,8 @@ class Request
 
     protected $postJson = false;
 
+    protected $returnRaw = false;
+
     public function __set($name, $value)
     {
         $this->data[$name] = $value;
@@ -29,6 +31,11 @@ class Request
     public function isNeedToken()
     {
         return $this->needToken;
+    }
+
+    public function returnRaw()
+    {
+        return $this->returnRaw;
     }
 
     public function getApi()

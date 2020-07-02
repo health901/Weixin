@@ -42,6 +42,6 @@ class ApiSender
                 throw new TokenException("Cannot get accessToken");
             }
         }
-        return $this->request($api->getApi(), $api->getData(), $api->getMethod());
+        return $this->request($api->getApi(), $api->getData(), $api->getMethod(), $api->returnRaw());
     }
 }
