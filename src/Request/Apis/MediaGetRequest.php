@@ -13,7 +13,7 @@ use VRobin\Weixin\Request\Request;
  */
 class MediaGetRequest extends Request
 {
-    protected $api = 'material/get';
+    protected $api = 'media/get';
     protected $returnRaw = true;
 
     public function setMediaId($media_id)

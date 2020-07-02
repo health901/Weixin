@@ -46,18 +46,19 @@ class Request
      */
     public static function post($url, $params = NULL, $option = array())
     {
+        $ch = curl_init();
         if (is_array($params) && !empty($params)) {
             foreach ($params as $k => $v) {
                 if (stripos($k, '@') === 0) {
-                    unset($params[$k]);
-                    $file = new \CURLFile($v);
+                    $file = new \CURLFile(realpath($v), mime_content_type($v));
                     $params[substr($k, 1)] = $file;
+                    curl_setopt($ch,CURLOPT_SAFE_UPLOAD,true);
+                    unset($params[$k]);
                 }
             }
 
         }
-
-        $ch = curl_init($url);
+        curl_setopt($ch,CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_POST, TRUE);

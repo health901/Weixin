@@ -20,6 +20,7 @@ trait ApiTrait
      */
     public function request($url, $data = array(), $method = 'get', $raw = false)
     {
+
         if ($method == 'post') {
             $result = $this->post($url, $data);
         } else {
@@ -34,23 +35,11 @@ trait ApiTrait
 
     protected function get($api, $data)
     {
-        $url = $this->apiUrl($api);
-        return Request::get($url, $data);
+        return Request::get($api, $data);
     }
 
     protected function post($api, $data)
     {
-        $url = $this->apiUrl($api);
-        return Request::post($url, json_encode($data, JSON_UNESCAPED_UNICODE));
-    }
-
-    protected function apiUrl($api)
-    {
-        $url = $this->apiUrl . $api;
-        if ($this->accessToken) {
-            $url .= '?access_token=' . $this->accessToken;
-        }
-
-        return $url;
+        return Request::post($api, $data);
     }
 }

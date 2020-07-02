@@ -6,7 +6,6 @@ namespace VRobin\Weixin\Request;
 
 use VRobin\Weixin\Exception\{ApiException, TokenException, WeixinException};
 use VRobin\Weixin\Request\Request as Api;
-use VRobin\Weixin\Token\TokenCreator;
 use VRobin\Weixin\Token\TokenInterface;
 
 class ApiSender
@@ -36,11 +35,13 @@ class ApiSender
      */
     public function sendRequest(Api $api)
     {
+        $api->apiUrl = $this->apiUrl;
         if ($api->isNeedToken()) {
             $this->accessToken = $this->tokenCreator->getToken();
             if (!$this->accessToken) {
                 throw new TokenException("Cannot get accessToken");
             }
+            $api->setAccessToken($this->accessToken);
         }
         return $this->request($api->getApi(), $api->getData(), $api->getMethod(), $api->returnRaw());
     }

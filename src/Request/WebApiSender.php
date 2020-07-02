@@ -33,6 +33,7 @@ class WebApiSender
      */
     public function sendRequest(Api $api)
     {
+        $api->apiUrl = $this->apiUrl;
         if ($api->isNeedToken() && !$this->accessToken) {
             throw new TokenException("Cannot get accessToken");
         }
