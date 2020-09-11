@@ -1,4 +1,5 @@
 <?php
+
 namespace VRobin\Weixin\Message;
 /**
  * 接受消息结果辅助类
@@ -17,15 +18,15 @@ namespace VRobin\Weixin\Message;
  * @property-read string $Ticket            二维码的ticket，可用来换取二维码图片
  * @property-read string $MediaId            图片消息媒体id，可以调用多媒体文件下载接口拉取数据
  * @property-read string $ThumbMediaId      视频消息缩略图的媒体id，可以调用多媒体文件下载接口拉取数据
- * @property-read string $Location_X	 	地理位置纬度
- * @property-read string $Location_Y	 	地理位置经度
+ * @property-read string $Location_X        地理位置纬度
+ * @property-read string $Location_Y        地理位置经度
  * @property-read string $Scale             地图缩放大小
  * @property-read string $Label             地理位置信息
- * @property-read string $PicUrl			图片链接
- * @property-read string $Description		消息描述 
+ * @property-read string $PicUrl            图片链接
+ * @property-read string $Description        消息描述
  * @property-read string $Title             消息标题
- * @property-read string $Url				消息链接  
- * @property-read string $Format			语音格式，如amr，speex等 
+ * @property-read string $Url                消息链接
+ * @property-read string $Format            语音格式，如amr，speex等
  * @property-read string $MsgId             消息id
  */
 class Result
@@ -37,7 +38,7 @@ class Result
     public function __construct($xml, $key = '')
     {
         $xml = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
-        $this->xml = json_decode(json_encode($xml));
+        $this->xml = $this->toObject($xml);
         $this->key = base64_decode($key . '=');
         if ($this->Encrypt) {
             $this->aesDecode();
@@ -64,9 +65,10 @@ class Result
         return $this->xml;
     }
 
-    protected function aesDecode(){
+    protected function aesDecode()
+    {
         $iv = substr($this->key, 0, 16);
-        $decrypted = openssl_decrypt($this->Encrypt,'AES-256-CBC',substr($this->key, 0, 32),OPENSSL_ZERO_PADDING,$iv);
+        $decrypted = openssl_decrypt($this->Encrypt, 'AES-256-CBC', substr($this->key, 0, 32), OPENSSL_ZERO_PADDING, $iv);
         $result = $this->decode($decrypted);
         if (strlen($result) < 16)
             return "";
@@ -75,7 +77,7 @@ class Result
         $xml_len = $len_list[1];
         $xml_content = substr($content, 4, $xml_len);
         $xml = simplexml_load_string($xml_content, 'SimpleXMLElement', LIBXML_NOCDATA);
-        $this->xml = json_decode(json_encode($xml));
+        $this->xml = $this->toObject($xml);
     }
 
     /**
@@ -91,5 +93,27 @@ class Result
             $pad = 0;
         }
         return substr($text, 0, (strlen($text) - $pad));
+    }
+
+    protected function toObject($sxml)
+    {
+        $array = json_decode(json_encode($sxml), 1);
+        $arrayNoEmpty = $this->removeEmpty($array);
+        return json_decode(json_encode($arrayNoEmpty));
+    }
+
+    protected function removeEmpty($array)
+    {
+        foreach ($array as $k => $v) {
+            if (is_array($v)) {
+                if (empty($v)) {
+                    $array[$k] = '';
+                } else {
+                    $array[$k] = $this->removeEmpty($v);
+                }
+            }
+
+        }
+        return $array;
     }
 }
