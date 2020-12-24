@@ -1,22 +1,30 @@
 {
-    "name": "vrobin/weixin",
-    "type": "library",
-    "description": "Weixin SDK",
-    "keywords": ["weixin"],
-    "homepage": "https://github.com/health901/Weixin",
-    "license": "MIT",
-    "version":"v3.0.4",
-    "authors": [
-        {
-            "name": "health901"
-        }
-    ],
-    "require": {
-        "php": ">=7.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "VRobin\\Weixin\\": "src/"
-        }
+  "name": "vrobin/weixin",
+  "type": "library",
+  "description": "Weixin SDK",
+  "keywords": [
+    "weixin"
+  ],
+  "homepage": "https://github.com/health901/Weixin",
+  "license": "MIT",
+  "version": "v3.0.5",
+  "authors": [
+    {
+      "name": "health901"
     }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "ext-json": "*",
+    "ext-curl": "*",
+    "ext-fileinfo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "VRobin\\Weixin\\": "src/"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  }
 }
