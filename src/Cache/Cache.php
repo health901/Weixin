@@ -14,15 +14,16 @@ class Cache
     /**
      * @param $key
      * @param $value
+     * @param $ttl int 单位秒
      * @return mixed
      * @throws WeixinException
      */
-    public static function set($key, $value)
+    public static function set($key, $value, int $ttl)
     {
         if (!self::$instance) {
             self::getInstance();
         }
-        return self::$instance->set($key, $value);
+        return self::$instance->set($key, $value, $ttl);
     }
 
     /**
@@ -37,6 +38,13 @@ class Cache
             self::getInstance();
         }
         return self::$instance->get($key, $value);
+    }
+
+    public static function clear(){
+        if (!self::$instance) {
+            self::getInstance();
+        }
+        return self::$instance->clear();
     }
 
     /**
@@ -61,7 +69,7 @@ class Cache
      * @param array $config
      * @throws WeixinException
      */
-    public static function getStore($store, $config = [])
+    public static function setStore($store, $config = [])
     {
         self::$config = [
             'store' => $store,

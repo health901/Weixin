@@ -3,10 +3,11 @@
 
 namespace VRobin\Weixin;
 
+use VRobin\Weixin\Apis\MpApi;
 use VRobin\Weixin\Cache\Cache;
-use VRobin\Weixin\Request\Apis\TicketGetTicketRequest;
+use VRobin\Weixin\Apis\Mp\TicketGetTicketApiRequest;
 
-class WeixinJsSignaturePack extends WeixinApi
+class WeixinJsSignaturePack extends MpApi
 {
     public function getSignaturePack($url = null)
     {
@@ -25,15 +26,17 @@ class WeixinJsSignaturePack extends WeixinApi
         return $params;
     }
 
-    protected function createTicket(){
-        $cache = Cache::get('jsapi_ticket');
-        if ($cache && $cache['expire'] > time()) {
-            return $cache['ticket'];
+    protected function createTicket()
+    {
+        $ticketKey = 'jsapi_ticket_' . $this->appid;
+        $cache = Cache::get($ticketKey);
+        if ($cache) {
+            return $cache;
         }
-        $data = $this->call(new TicketGetTicketRequest());
+        $data = $this->call(new TicketGetTicketApiRequest());
         $ticket = $data['ticket'];
-        $expire = time() + $data['expires_in'] - 200;
-        Cache::set('jsapi_ticket', ['expire' => $expire, 'ticket' => $ticket]);
+        $ttl = $data['expires_in'] - 200;
+        Cache::set($ticketKey, $ticket, $ttl);
         return $ticket;
     }
 }

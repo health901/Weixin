@@ -4,11 +4,17 @@
 namespace VRobin\Weixin\Token;
 
 
+use VRobin\Weixin\Apis\Api;
 use VRobin\Weixin\Exception\ApiException;
 use VRobin\Weixin\Exception\TokenException;
-use VRobin\Weixin\Request\WebApis\SnsOauthAaccessTokenRequest;
-use VRobin\Weixin\Request\WebApiSender;
+use VRobin\Weixin\Apis\Web\SnsOauthAccessTokenApiRequest;
 
+
+/**
+ * 微信用户授权Token
+ * Class OAuthTokenCreator
+ * @package VRobin\Weixin\Token
+ */
 class OAuthTokenCreator implements TokenInterface
 {
     protected $appid;
@@ -54,12 +60,12 @@ class OAuthTokenCreator implements TokenInterface
      */
     protected function request()
     {
-        $api = new SnsOauthAaccessTokenRequest();
+        $api = new SnsOauthAccessTokenApiRequest();
         $api->setAppid($this->appid);
         $api->setSecret($this->secret);
         $api->setCode($this->code);
 
-        $sender = new WebApiSender();
+        $sender = new Api();
         return $sender->sendRequest($api);
     }
 }

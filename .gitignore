@@ -3,3 +3,5 @@
 /demo
 /.idea
 vendor
+composer.lock
+/Test/test_config.php

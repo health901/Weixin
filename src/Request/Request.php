@@ -4,74 +4,73 @@
 namespace VRobin\Weixin\Request;
 
 
+use CURLFile;
+
 class Request
 {
-    public $apiUrl;
-
-    protected $api;
-
-    protected $data = [];
-
-    protected $queryData = [];
-
-    protected $method = 'GET';
-
-    protected $needToken = true;
-
-    protected $accessToken;
-
-    protected $postJson = true;
-
-    protected $returnRaw = false;
-
-    public function __set($name, $value)
+    /**
+     *
+     * @param string $url
+     * @param array $params
+     * @param array $option
+     * @return string
+     */
+    public static function get($url, $params = array(), $option = array())
     {
-        $this->data[$name] = $value;
-    }
 
-    protected function postJson()
-    {
-        return $this->method == 'GET' ? false : ($this->data ? $this->postJson : false);
-    }
+        if (!empty($params)) {
+            $p = http_build_query($params);
 
-    public function getData()
-    {
-        return $this->postJson() ? json_encode($this->data, JSON_UNESCAPED_UNICODE) : $this->data;
-    }
-
-    public function isNeedToken()
-    {
-        return $this->needToken;
-    }
-
-    public function setAccessToken($token){
-        $this->accessToken = $token;
-    }
-
-    public function returnRaw()
-    {
-        return $this->returnRaw;
-    }
-
-    public function getApi()
-    {
-        return $this->apiUrl();
-    }
-
-    public function getMethod()
-    {
-        return strtolower($this->method);
-    }
-
-    protected function apiUrl()
-    {
-        $url = $this->apiUrl . $this->api;
-        if ($this->accessToken) {
-            $this->queryData['access_token'] = $this->accessToken;
+            if (FALSE === strpos($url, '?')) {
+                $url = $url . '?' . $p;
+            } else {
+                $url = $url . '&' . $p;
+            }
         }
-        if($this->queryData){
-            $url .= '?' . http_build_query($this->queryData);
-        }
-        return $url;
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt_array($ch, $option);
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result ? $result : false;
     }
+
+
+    /**
+     *
+     * @param string $url
+     * @param mixed $params
+     * @param array $option
+     * @return string
+     */
+    public static function post($url, $params = NULL, $option = array())
+    {
+        $ch = curl_init();
+        if (is_array($params) && !empty($params)) {
+            foreach ($params as $k => $v) {
+                if (stripos($k, '@') === 0) {
+                    $file = new CURLFile(realpath($v), mime_content_type($v));
+                    $params[substr($k, 1)] = $file;
+                    unset($params[$k]);
+                }
+            }
+
+        }
+        curl_setopt($ch,CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_POST, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+        curl_setopt_array($ch, $option);
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result ? $result : false;
+    }
+
+
 }
